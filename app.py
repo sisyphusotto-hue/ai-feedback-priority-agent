@@ -1,6 +1,13 @@
 import streamlit as st
 
-from src.feedback_analyzer import analyze_feedback
+from src import deepseek_client, feedback_analyzer
+
+
+def get_streamlit_secrets() -> dict:
+    try:
+        return dict(st.secrets)
+    except FileNotFoundError:
+        return {}
 
 
 st.set_page_config(page_title="AI 用户反馈分析与需求优先级 Agent", page_icon="🧭")
@@ -18,7 +25,17 @@ if st.button("开始分析", type="primary"):
     if not feedback_text.strip():
         st.warning("请至少输入一条用户反馈。")
     else:
-        result = analyze_feedback(feedback_text)
+        try:
+            api_key = deepseek_client.get_api_key(get_streamlit_secrets())
+            client = deepseek_client.create_client(api_key)
+            with st.spinner("正在调用模型分析反馈……"):
+                result = feedback_analyzer.analyze_feedback(feedback_text, client)
+        except ValueError as error:
+            st.error(str(error))
+            st.stop()
+        except Exception:
+            st.error("模型分析暂时失败，请稍后重试。")
+            st.stop()
         st.subheader("分析概览")
         st.metric("反馈总数", result["total_count"])
 
