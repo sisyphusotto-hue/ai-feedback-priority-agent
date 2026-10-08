@@ -36,5 +36,5 @@ if st.button("开始分析", type="primary"):
         for item in result["priorities"]:
             st.markdown(
                 f"**{item['priority']}｜{category_names[item['category']]}**："
-                f"{item['feedback']}  \\n+{item['reason']}"
+                f"{item['feedback']}  \n{item['reason']}"
             )
